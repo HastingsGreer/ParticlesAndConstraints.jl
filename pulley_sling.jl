@@ -278,7 +278,7 @@ end
 s3 = System{Float64}(
 	6,
 	[Slider(4, [1, 1]), Slider(4, [-1, 1]), Rod(3, 2), Rod(4, 3), Rod(5, 4), Rod(5, 3),Shelf(6, [0, 1]), Slider(1, [1, 1]), Slider(1, [-1, 1]), Prop(2, 4), Rope(1, 5, 6)],
-	[40, 15000, 100, 100, 40, 10]
+	[40, 5000, 100, 100, 40, 10]
 )
 
 # ╔═╡ a2a65e9b-4a5b-4f72-890e-837d54bb4569
@@ -299,13 +299,13 @@ CWy $(	@bind ccwy PlutoUI.Slider(-4:.01:4))
 """
 
 # ╔═╡ c403c105-3355-4e0f-8c8f-4f939264a883
-solution3 = rk40(s3, [mount_, -4, ccwx, ccwy, cwx, cwy, 0, 0, arm, -4, sling, -4], 8., 1400);maximum(solution3[:, 23] .* solution3[:, 24])
+solution3 = rk40(s3, [mount_, -4, ccwx, ccwy, cwx, cwy, 0, 0, arm, -4, sling, -4], 8., 400);maximum(solution3[:, 23] .* solution3[:, 24])
 
 # ╔═╡ 69b77b18-7faf-4703-82b0-9b04c8b16287
 render(s3, solution3)
 
 # ╔═╡ d684c31a-629f-4f44-a85d-aa8e9f37f7e1
-rendera(s3, solution3);
+rendera(s3, solution3)
 
 # ╔═╡ df8b2491-429d-4c7d-ad05-c5cb91de03bb
 params = 2 .* [sling, mount_, arm, cwx, cwy, ccwx, ccwy]
@@ -314,7 +314,7 @@ params = 2 .* [sling, mount_, arm, cwx, cwy, ccwx, ccwy]
 begin
 	function range_(params)
 	sl, mo, ar, cx, cy, wx, wy = params
-	solution4 = rk40(s3, [mo, -8, wx, wy, cx, cy, 0, 0, ar, -8, sl, -8], 8., 1900)
+	solution4 = rk40(s3, [mo, -8, wx, wy, cx, cy, 0, 0, ar, -8, sl, -8], 8., 200)
 	newrange = maximum(solution4[:, 23] .* solution4[:, 24])
 		if sqrt(cx^2 + cy^2) + sqrt((cx - wx)^2 + (cy - wy)^2) < 8 && ar < 0 && wx > cx && mo > -20 && ar > -15
 			
@@ -356,7 +356,7 @@ using Optim
 function range__(p)
 	return -range_(p)[2]
 end
-res = optimize(range__, searchparams, iterations=3000)
+res = optimize(range__, searchparams, iterations=300)
 end
 
 # ╔═╡ e1f55e47-3246-4428-b08f-0a13857a2861
@@ -383,22 +383,15 @@ Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
-
-[compat]
-BenchmarkTools = "~1.3.2"
-Optim = "~1.7.6"
-Plots = "~1.38.12"
-PlutoUI = "~0.7.51"
-StaticArrays = "~1.5.25"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.1"
+julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "a5bdb64bc9b7c95f950433cb289bd45ca26efd79"
+project_hash = "5188475ea13fe429bc894cad457842df9bdd89d6"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -422,9 +415,9 @@ version = "1.1.1"
 
 [[deps.ArrayInterface]]
 deps = ["Adapt", "LinearAlgebra", "Requires", "SparseArrays", "SuiteSparse"]
-git-tree-sha1 = "d3f758863a47ceef2248d136657cb9c033603641"
+git-tree-sha1 = "917286faa2abb288796e75b88ca67edc016f3219"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "7.4.8"
+version = "7.4.5"
 
     [deps.ArrayInterface.extensions]
     ArrayInterfaceBandedMatricesExt = "BandedMatrices"
@@ -576,9 +569,9 @@ version = "1.1.0"
 
 [[deps.DiffRules]]
 deps = ["IrrationalConstants", "LogExpFunctions", "NaNMath", "Random", "SpecialFunctions"]
-git-tree-sha1 = "23163d55f885173722d1e4cf0f6110cdbaf7e272"
+git-tree-sha1 = "a4ad7ef19d2cdc2eff57abbbe68032b1cd0bd8f8"
 uuid = "b552c78f-8df3-52c6-915a-8e097449b14b"
-version = "1.15.1"
+version = "1.13.0"
 
 [[deps.Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -618,25 +611,15 @@ uuid = "7b1f6079-737a-58dc-b8bc-7a2ca5c1b5ee"
 
 [[deps.FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "589d3d3bff204bdd80ecc53293896b4f39175723"
+git-tree-sha1 = "fa10570aee20250d446c9951b459c63529b1107c"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "1.1.1"
+version = "1.0.2"
 
 [[deps.FiniteDiff]]
-deps = ["ArrayInterface", "LinearAlgebra", "Requires", "Setfield", "SparseArrays"]
-git-tree-sha1 = "c6e4a1fbe73b31a3dea94b1da449503b8830c306"
+deps = ["ArrayInterface", "LinearAlgebra", "Requires", "Setfield", "SparseArrays", "StaticArrays"]
+git-tree-sha1 = "6604e18a0220650dbbea7854938768f15955dd8e"
 uuid = "6a86dc24-6348-571c-b903-95158fe2bd41"
-version = "2.21.1"
-
-    [deps.FiniteDiff.extensions]
-    FiniteDiffBandedMatricesExt = "BandedMatrices"
-    FiniteDiffBlockBandedMatricesExt = "BlockBandedMatrices"
-    FiniteDiffStaticArraysExt = "StaticArrays"
-
-    [deps.FiniteDiff.weakdeps]
-    BandedMatrices = "aae01518-5342-5314-be14-df237901396f"
-    BlockBandedMatrices = "ffab5731-97b5-5995-9138-79e8c1846df0"
-    StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+version = "2.20.0"
 
 [[deps.FixedPointNumbers]]
 deps = ["Statistics"]
@@ -690,15 +673,15 @@ version = "3.3.8+0"
 
 [[deps.GR]]
 deps = ["Artifacts", "Base64", "DelimitedFiles", "Downloads", "GR_jll", "HTTP", "JSON", "Libdl", "LinearAlgebra", "Pkg", "Preferences", "Printf", "Random", "Serialization", "Sockets", "TOML", "Tar", "Test", "UUIDs", "p7zip_jll"]
-git-tree-sha1 = "d014972cd6f5afb1f8cd7adf000b7a966d62c304"
+git-tree-sha1 = "3eeb026e99c84517c35d0309468a63df712d8460"
 uuid = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
-version = "0.72.5"
+version = "0.72.6"
 
 [[deps.GR_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Cairo_jll", "FFMPEG_jll", "Fontconfig_jll", "GLFW_jll", "JLLWrappers", "JpegTurbo_jll", "Libdl", "Libtiff_jll", "Pixman_jll", "Qt5Base_jll", "Zlib_jll", "libpng_jll"]
-git-tree-sha1 = "f670f269909a9114df1380cc0fcaa316fff655fb"
+git-tree-sha1 = "55297beef80a236708e6a54b134d07fde213cd1b"
 uuid = "d2c73de3-f751-5644-a686-071e5b155ba9"
-version = "0.72.5+0"
+version = "0.72.6+0"
 
 [[deps.Gettext_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "XML2_jll"]
@@ -1024,9 +1007,9 @@ version = "0.5.5+0"
 
 [[deps.Optim]]
 deps = ["Compat", "FillArrays", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "PositiveFactorizations", "Printf", "SparseArrays", "StatsBase"]
-git-tree-sha1 = "e3a6546c1577bfd701771b477b794a52949e7594"
+git-tree-sha1 = "a89b11f0f354f06099e4001c151dffad7ebab015"
 uuid = "429524aa-4258-5aef-a3af-852621145aeb"
-version = "1.7.6"
+version = "1.7.5"
 
 [[deps.Opus_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1512,7 +1495,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
-version = "5.8.0+0"
+version = "5.7.0+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
