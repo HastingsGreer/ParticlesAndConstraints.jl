@@ -5,11 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mechanism Designer</title>
 <style>
-  body { display: flex; height: 100vh; margin: 0; }
-  #mechanism { flex: 1; border: 1px solid #ccc; }
-  #particlesControl, #constraintsControl { width: 300px; overflow-y: auto; border: 1px solid #ccc; }
-  .control-box { padding: 10px; border-bottom: 1px solid #eee; }
-  canvas { width: 100%; height: 100% }
+  body {
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+  #mechanism {
+    flex: 1;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  #particlesControl, #constraintsControl {
+    width: 300px;
+    overflow-y: auto;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 20px;
+  }
+  .control-box {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #e9e9e9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  button {
+    background-color: #5c6bc0;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button:hover {
+    background-color: #3949ab;
+  }
+  label {
+    display: block;
+    margin: 10px 0;
+  }
+  input[type=range] {
+    width: 100%;
+  }
+  select {
+    padding: 5px;
+    border-radius: 4px;
+    width: calc(100% - 10px);
+  }
+  canvas {
+    display: block; /* Removes the bottom margin/gap */
+  }
 </style>
 </head>
 <body>
@@ -17,13 +67,14 @@
 
 <div id="particlesControl">
   <button onclick="createParticle()">Add Particle</button>
+  <!-- Particle control boxes will be dynamically inserted here -->
 </div>
 
 <div id="constraintsControl">
   <button onclick="createConstraint('rod')">Add Rod</button>
   <button onclick="createConstraint('slider')">Add Slider</button>
+  <!-- Constraint control boxes will be dynamically inserted here -->
 </div>
-
 <script>
 const canvas = document.getElementById('mechanism');
 const ctx = canvas.getContext('2d');
@@ -39,6 +90,7 @@ const constraints = { rod: [], slider: [] };
 					      ctx.beginPath();
 					      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
 					      ctx.fillStyle = p.hovered ? 'yellow' : 'black'; // Change fill style if hovered
+ctx.strokeStyle='black';
 
 					      ctx.fill();
 					      ctx.stroke();
