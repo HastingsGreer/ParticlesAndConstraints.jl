@@ -1,369 +1,454 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mechanism Designer</title>
-<style>
-  body {
-    display: flex;
-    height: 100vh;
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-  }
-  #mechanism {
-    flex: 1;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-  #particlesControl, #constraintsControl {
-    width: 300px;
-    overflow-y: auto;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    padding: 20px;
-  }
-  .control-box {
-    padding: 10px;
-    margin-bottom: 10px;
-    background: #e9e9e9;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  button {
-    background-color: #5c6bc0;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    margin: 5px 0;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  button:hover {
-    background-color: #3949ab;
-  }
-  label {
-    display: block;
-    margin: 10px 0;
-  }
-  input[type=range] {
-    width: 100%;
-  }
-  select {
-    padding: 5px;
-    border-radius: 4px;
-    width: calc(100% - 10px);
-  }
-  canvas {
-    display: block; /* Removes the bottom margin/gap */
-  }
-</style>
-</head>
-<body>
-<canvas id="mechanism"></canvas>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mechanism Designer</title>
+    <style>
+      body {
+        display: flex;
+        height: 100vh;
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f4;
+        color: #333;
+      }
+      #mechanism {
+        flex: 1;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      #particlesControl,
+      #constraintsControl {
+        width: 300px;
+        overflow-y: auto;
+        background: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+      .control-box {
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #e9e9e9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      button {
+        background-color: #5c6bc0;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px 0;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover {
+        background-color: #3949ab;
+      }
+      label {
+        display: block;
+        margin: 10px 0;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      select {
+        padding: 5px;
+        border-radius: 4px;
+        width: calc(100% - 10px);
+      }
+      canvas {
+        display: block; /* Removes the bottom margin/gap */
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="mechanism"></canvas>
 
-<div id="particlesControl">
-  <button onclick="createParticle()">Add Particle</button>
-  <!-- Particle control boxes will be dynamically inserted here -->
-</div>
+    <div id="particlesControl">
+      <button onclick="createParticle()">Add Particle</button>
+      <!-- Particle control boxes will be dynamically inserted here -->
+    </div>
 
-<div id="constraintsControl">
-  <button onclick="createConstraint('rod')">Add Rod</button>
-  <button onclick="createConstraint('slider')">Add Slider</button>
-  <!-- Constraint control boxes will be dynamically inserted here -->
-</div>
-<script>
-const canvas = document.getElementById('mechanism');
-const ctx = canvas.getContext('2d');
-const particles = [];
-const constraints = { rod: [], slider: [] };
+    <div id="constraintsControl">
+      <button onclick="createConstraint('rod')">Add Rod</button>
+      <button onclick="createConstraint('slider')">Add Slider</button>
+      <!-- Constraint control boxes will be dynamically inserted here -->
+    </div>
+    <script type="module">
+      import { simulate } from "./main.js";
+      console.log(simulate);
+      window.simulate = simulate;
+    </script>
+    <script>
+      const canvas = document.getElementById("mechanism");
+      const ctx = canvas.getContext("2d");
+      const particles = [];
+      const constraints = { rod: [], slider: [] };
 
-	function drawMechanism() {
-			  ctx.clearRect(0, 0, canvas.width, canvas.height);
-			  
-			  // Draw particles
-			  particles.forEach((p, index) => {
-					      const radius = Math.cbrt(p.mass) * 10; // Arbitrary scaling factor for visualization
-					      ctx.beginPath();
-					      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-					      ctx.fillStyle = p.hovered ? 'yellow' : 'black'; // Change fill style if hovered
-ctx.strokeStyle='black';
+      function drawMechanism() {
+        saveMechanism();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-					      ctx.fill();
-					      ctx.stroke();
+        // Draw particles
+        particles.forEach((p, index) => {
+          const radius = Math.cbrt(p.mass) * 10; // Arbitrary scaling factor for visualization
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = p.hovered ? "yellow" : "black"; // Change fill style if hovered
+          ctx.strokeStyle = "black";
 
-					      // Draw label
-					  // Draw label
-					      ctx.font = '18px Arial'; // You can change the size and font if you like
-					      ctx.textAlign = 'center';
-					      ctx.textBaseline = 'middle';
-					      ctx.fillStyle = 'black'; // Text color
-					      ctx.fillText(`P${index + 1}`, p.x, p.y - radius - 10); // Adjust label position as needed
-					    });
+          ctx.fill();
+          ctx.stroke();
 
-			  // Set a thicker line width for rods and sliders
-			  ctx.lineWidth = 3; // Increase the line width as desired
+          // Draw label
+          ctx.font = "18px Arial"; // You can change the size and font if you like
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "black"; // Text color
+          ctx.fillText(`P${index + 1}`, p.x, p.y - radius - 10); // Adjust label position as needed
+        });
 
-			  // Draw rods
-			  constraints.rod.forEach(c => {
-					      const p1 = particles[c.p1];
-					      const p2 = particles[c.p2];
-					      ctx.beginPath();
-					      ctx.moveTo(p1.x, p1.y);
-					      ctx.lineTo(p2.x, p2.y);
-					      ctx.strokeStyle = c.hovered ? 'blue' : 'black'; // Change stroke style if hovered
-					      ctx.stroke();
-					    });
+        // Set a thicker line width for rods and sliders
+        ctx.lineWidth = 3; // Increase the line width as desired
 
-			  // Draw sliders
-			  constraints.slider.forEach(c => {
-					      const p = particles[c.p];
-					      const sliderLength = 40; // Length of the slider line
-					      const angle = Math.atan2(c.normal.y, c.normal.x); // Angle of the slider line
-					      ctx.beginPath();
-					      ctx.moveTo(p.x - sliderLength * Math.cos(angle), p.y - sliderLength * Math.sin(angle));
-					      ctx.lineTo(p.x + sliderLength * Math.cos(angle), p.y + sliderLength * Math.sin(angle));
-					      ctx.strokeStyle = c.hovered ? 'red' : 'black'; // Change stroke style if hovered
-					      ctx.stroke();
-					    });
+        // Draw rods
+        constraints.rod.forEach((c) => {
+          const p1 = particles[c.p1];
+          const p2 = particles[c.p2];
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = c.hovered ? "blue" : "black"; // Change stroke style if hovered
+          ctx.stroke();
+        });
 
-			  // Reset line width to default if needed elsewhere
-			  ctx.lineWidth = 1;
-		}
+        // Draw sliders
+        constraints.slider.forEach((c) => {
+          const p = particles[c.p];
+          const sliderLength = 40; // Length of the slider line
+          const angle = Math.atan2(c.normal.y, c.normal.x); // Angle of the slider line
+          ctx.beginPath();
+          ctx.moveTo(
+            p.x - sliderLength * Math.cos(angle),
+            p.y - sliderLength * Math.sin(angle),
+          );
+          ctx.lineTo(
+            p.x + sliderLength * Math.cos(angle),
+            p.y + sliderLength * Math.sin(angle),
+          );
+          ctx.strokeStyle = c.hovered ? "red" : "black"; // Change stroke style if hovered
+          ctx.stroke();
+        });
 
-function createParticle() {
-  const index = particles.length;
-  const particle = { x: 100, y: 100, mass: 1, hovered:false}; // Default values
-  particles.push(particle);
-  updateUI();
-}
+        // Reset line width to default if needed elsewhere
+        ctx.lineWidth = 1;
+        window.simulate(particles, constraints, ctx);
+      }
 
-function updateParticle(index, property, value) {
-  particles[index][property] = Number(value);
-drawMechanism()
-}
+      function createParticle() {
+        const index = particles.length;
+        const particle = { x: 100, y: 100, mass: 1, hovered: false }; // Default values
+        particles.push(particle);
+        updateUI();
+      }
 
-function deleteParticle(index) {
-  particles.splice(index, 1);
-  document.getElementById('particlesControl').children[index + 1].remove();
-  updateUI()
-}
-function createConstraint(type) {
-  const index = constraints[type].length;
-  let constraint = {};
+      function updateParticle(index, property, value) {
+        particles[index][property] = Number(value);
+        drawMechanism();
+      }
 
-  // Depending on the type, create a different constraint
-  if (type === 'rod') {
-    if (particles.length < 2) {
-      alert('At least two particles are required to create a rod constraint.');
-      return;
-    }
-    constraint = { p1: 0, p2: 1, hovered:false}; // Default to the first two particles
-    constraints.rod.push(constraint);
-  } else if (type === 'slider') {
-    if (particles.length < 1) {
-      alert('At least one particle is required to create a slider constraint.');
-      return;
-    }
-    constraint = { p: 0, normal: { x: 0, y: 1 }, hovered:false}; // Default to the first particle and a vertical normal
-    constraints.slider.push(constraint);
-  } else {
-    console.error('Unknown constraint type:', type);
-    return;
-  }
-  updateUI();
-}
-function updateConstraint(element, type, index, property) {
-  const value = (property.includes('normal')) ? parseFloat(element.value) : parseInt(element.value);
-  const constraint = constraints[type][index];
+      function deleteParticle(index) {
+        particles.splice(index, 1);
+        updateUI();
+      }
+      function createConstraint(type) {
+        const index = constraints[type].length;
+        let constraint = {};
 
-  if (property === 'p1' || property === 'p2' || property === 'p') {
-    constraint[property] = value;
-  updateUI(); // Reflect changes in the UI
-  } else if (property === 'normalX' || property === 'normalY') {
-    constraint.normal[property.slice(-1).toLowerCase()] = value;
-drawMechanism()
-  }
+        // Depending on the type, create a different constraint
+        if (type === "rod") {
+          if (particles.length < 2) {
+            alert(
+              "At least two particles are required to create a rod constraint.",
+            );
+            return;
+          }
+          constraint = { p1: 0, p2: 1, hovered: false }; // Default to the first two particles
+          constraints.rod.push(constraint);
+        } else if (type === "slider") {
+          if (particles.length < 1) {
+            alert(
+              "At least one particle is required to create a slider constraint.",
+            );
+            return;
+          }
+          constraint = { p: 0, normal: { x: 0, y: 1 }, hovered: false }; // Default to the first particle and a vertical normal
+          constraints.slider.push(constraint);
+        } else {
+          console.error("Unknown constraint type:", type);
+          return;
+        }
+        updateUI();
+      }
+      function updateConstraint(element, type, index, property) {
+        const value = property.includes("normal")
+          ? parseFloat(element.value)
+          : parseInt(element.value);
+        const constraint = constraints[type][index];
 
-}
+        if (property === "p1" || property === "p2" || property === "p") {
+          constraint[property] = value;
+          updateUI(); // Reflect changes in the UI
+        } else if (property === "normalX" || property === "normalY") {
+          constraint.normal[property.slice(-1).toLowerCase()] = value;
+          drawMechanism();
+        }
+      }
 
+      function deleteConstraint(type, index) {
+        constraints[type].splice(index, 1);
+        updateUI();
+      }
 
-function deleteConstraint(type, index) {
-  constraints[type].splice(index, 1);
-	updateUI();
-}
+      function resizeCanvas() {
+        canvas.width = window.innerWidth - 600; // 300px for each control column
+        canvas.height = window.innerHeight;
+        updateUI();
+      }
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth - 600; // 300px for each control column
-  canvas.height = window.innerHeight;
-	updateUI();
-}
+      function updateUI() {
+        // Clear the canvas and redraw the mechanism
+        drawMechanism();
 
-function updateUI() {
-  // Clear the canvas and redraw the mechanism
-  drawMechanism();
-  
-  // Update Particle Controls UI
-  const particlesControl = document.getElementById('particlesControl');
-  // Clear current particle controls except the 'Add Particle' button
-  while (particlesControl.children.length > 1) {
-    particlesControl.removeChild(particlesControl.lastChild);
-  }
-  // Re-create particle control boxes
-  particles.forEach((particle, index) => createParticleControlBox(index));
-  
-  // Update Constraint Controls UI
-  const constraintsControl = document.getElementById('constraintsControl');
-  // Clear current constraint controls except the 'Add' buttons
-  while (constraintsControl.children.length > 2) {
-    constraintsControl.removeChild(constraintsControl.lastChild);
-  }
-  // Re-create constraint control boxes
-  constraints.rod.forEach((constraint, index) => createConstraintControlBox('rod', index));
-  constraints.slider.forEach((constraint, index) => createConstraintControlBox('slider', index));
-}
+        // Update Particle Controls UI
+        const particlesControl = document.getElementById("particlesControl");
+        // Clear current particle controls except the 'Add Particle' button
+        while (particlesControl.children.length > 1) {
+          particlesControl.removeChild(particlesControl.lastChild);
+        }
+        // Re-create particle control boxes
+        particles.forEach((particle, index) => createParticleControlBox(index));
 
-function createParticleControlBox(index) {
-  const box = document.createElement('div');
-  box.className = 'control-box';
-  box.innerHTML = `
+        // Update Constraint Controls UI
+        const constraintsControl =
+          document.getElementById("constraintsControl");
+        // Clear current constraint controls except the 'Add' buttons
+        while (constraintsControl.children.length > 2) {
+          constraintsControl.removeChild(constraintsControl.lastChild);
+        }
+        // Re-create constraint control boxes
+        constraints.rod.forEach((constraint, index) =>
+          createConstraintControlBox("rod", index),
+        );
+        constraints.slider.forEach((constraint, index) =>
+          createConstraintControlBox("slider", index),
+        );
+      }
+
+      function createParticleControlBox(index) {
+        const box = document.createElement("div");
+        box.className = "control-box";
+        box.innerHTML = `
     <label>Mass: <input type="range" min="1" max="10" value="${particles[index].mass}" oninput="updateParticle(${index}, 'mass', this.value)"></label>
     <label>X: <input type="range" min="0" max="${canvas.width}" value="${particles[index].x}" oninput="updateParticle(${index}, 'x', this.value)"></label>
     <label>Y: <input type="range" min="0" max="${canvas.height}" value="${particles[index].y}" oninput="updateParticle(${index}, 'y', this.value)"></label>
-    <button onclick="deleteParticle(${index})">X</button>
+    <!--<button onclick="deleteParticle(${index})">X</button>
   `;
-box.addEventListener('mouseenter', () => {
-    particles[index].hovered = true;
-    drawMechanism();
-  });
-  box.addEventListener('mouseleave', () => {
-    particles[index].hovered = false;
-    drawMechanism();
-  });
-  document.getElementById('particlesControl').appendChild(box);
-}
+        box.addEventListener("mouseenter", () => {
+          particles[index].hovered = true;
+          drawMechanism();
+        });
+        box.addEventListener("mouseleave", () => {
+          particles[index].hovered = false;
+          drawMechanism();
+        });
+        document.getElementById("particlesControl").appendChild(box);
+      }
 
-function createConstraintControlBox(type, index) {
-  const box = document.createElement('div');
-  box.className = 'control-box';
-  box.dataset.type = type;
-  box.dataset.index = index;
+      function createConstraintControlBox(type, index) {
+        const box = document.createElement("div");
+        box.className = "control-box";
+        box.dataset.type = type;
+        box.dataset.index = index;
 
-  if (type === 'rod') {
-    box.innerHTML = `
-      <label>Particle 1:
+        if (type === "rod") {
+          box.innerHTML = `
+      <label>
         <select name="p1" onchange="updateConstraint(this, 'rod', ${index}, 'p1')">
-          ${particles.map((_, i) => `<option value="${i}" ${i === constraints.rod[index].p1 ? 'selected' : ''}>Particle ${i + 1}</option>`).join('')}
+          ${particles
+            .map(
+              (_, i) =>
+                `<option value="${i}" ${
+                  i === constraints.rod[index].p1 ? "selected" : ""
+                }>Particle ${i + 1}</option>`,
+            )
+            .join("")}
         </select>
       </label>
-      <label>Particle 2:
+      <label>
         <select name="p2" onchange="updateConstraint(this, 'rod', ${index}, 'p2')">
-          ${particles.map((_, i) => `<option value="${i}" ${i === constraints.rod[index].p2 ? 'selected' : ''}>Particle ${i + 1}</option>`).join('')}
+          ${particles
+            .map(
+              (_, i) =>
+                `<option value="${i}" ${
+                  i === constraints.rod[index].p2 ? "selected" : ""
+                }>Particle ${i + 1}</option>`,
+            )
+            .join("")}
         </select>
       </label>
       <button onclick="deleteConstraint('rod', ${index})">Delete</button>
     `;
-  } else if (type === 'slider') {
-    const slider = constraints.slider[index];
-    box.innerHTML = `
-      <label>Particle:
+        } else if (type === "slider") {
+          const slider = constraints.slider[index];
+          box.innerHTML = `
+      <label>
         <select name="p" onchange="updateConstraint(this, 'slider', ${index}, 'p')">
-          ${particles.map((_, i) => `<option value="${i}" ${i === slider.p ? 'selected' : ''}>Particle ${i + 1}</option>`).join('')}
+          ${particles
+            .map(
+              (_, i) =>
+                `<option value="${i}" ${
+                  i === slider.p ? "selected" : ""
+                }>Particle ${i + 1}</option>`,
+            )
+            .join("")}
         </select>
       </label>
-      <label>Normal X: <input type="range" name="normalX" min="-1" max="1" step="0.1" value="${slider.normal.x}" oninput="updateConstraint(this, 'slider', ${index}, 'normalX')"></label>
-      <label>Normal Y: <input type="range" name="normalY" min="-1" max="1" step="0.1" value="${slider.normal.y}" oninput="updateConstraint(this, 'slider', ${index}, 'normalY')"></label>
+      <label>Normal X: <input type="range" name="normalX" min="-1" max="1" step="0.1" value="${
+        slider.normal.x
+      }" oninput="updateConstraint(this, 'slider', ${index}, 'normalX')"></label>
+      <label>Normal Y: <input type="range" name="normalY" min="-1" max="1" step="0.1" value="${
+        slider.normal.y
+      }" oninput="updateConstraint(this, 'slider', ${index}, 'normalY')"></label>
       <button onclick="deleteConstraint('slider', ${index})">Delete</button>
     `;
-  }
+        }
 
-box.addEventListener('mouseenter', () => {
-    if (type === 'rod') {
-      constraints.rod[index].hovered = true;
-    } else if (type === 'slider') {
-      constraints.slider[index].hovered = true;
-    }
-    drawMechanism();
-  });
-  box.addEventListener('mouseleave', () => {
-    if (type === 'rod') {
-      constraints.rod[index].hovered = false;
-    } else if (type === 'slider') {
-      constraints.slider[index].hovered = false;
-    }
-    drawMechanism();
-  });
-  document.getElementById('constraintsControl').appendChild(box);
-}
-// Global variable to track the currently dragged particle, if any
-let draggedParticleIndex = null;
+        box.addEventListener("mouseenter", () => {
+          if (type === "rod") {
+            constraints.rod[index].hovered = true;
+          } else if (type === "slider") {
+            constraints.slider[index].hovered = true;
+          }
+          drawMechanism();
+        });
+        box.addEventListener("mouseleave", () => {
+          if (type === "rod") {
+            constraints.rod[index].hovered = false;
+          } else if (type === "slider") {
+            constraints.slider[index].hovered = false;
+          }
+          drawMechanism();
+        });
+        document.getElementById("constraintsControl").appendChild(box);
+      }
+      // Global variable to track the currently dragged particle, if any
+      let draggedParticleIndex = null;
 
-// Function to check if a mouse position is over a particle
-function getParticleAtPosition(x, y) {
-  return particles.findIndex(p => {
-    const distance = Math.sqrt((p.x - x) ** 2 + (p.y - y) ** 2);
-    const radius = Math.cbrt(p.mass) * 10; // Same scaling as used in drawMechanism
-    return distance < radius; // The mouse is over the particle if it's within its radius
-  });
-}
+      // Function to check if a mouse position is over a particle
+      function getParticleAtPosition(x, y) {
+        return particles.findIndex((p) => {
+          const distance = Math.sqrt((p.x - x) ** 2 + (p.y - y) ** 2);
+          const radius = Math.cbrt(p.mass) * 10; // Same scaling as used in drawMechanism
+          return distance < radius; // The mouse is over the particle if its within its radius
+        });
+      }
 
-// Set up the event listeners on the canvas
-canvas.addEventListener('mousedown', function(event) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;    // relationship bitmap vs. element for X
-  const scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+      // Set up the event listeners on the canvas
+      canvas.addEventListener("mousedown", function (event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width; // relationship bitmap vs. element for X
+        const scaleY = canvas.height / rect.height; // relationship bitmap vs. element for Y
 
-  const x = (event.clientX - rect.left) * scaleX;
-  const y = (event.clientY - rect.top) * scaleY;
-  const particleIndex = getParticleAtPosition(x, y);
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+        const particleIndex = getParticleAtPosition(x, y);
 
-  if (particleIndex !== -1) {
-    draggedParticleIndex = particleIndex;
-    canvas.style.cursor = 'move';
-  }
-});
+        if (particleIndex !== -1) {
+          draggedParticleIndex = particleIndex;
+          canvas.style.cursor = "move";
+        }
+      });
 
-canvas.addEventListener('mousemove', function(event) {
-  if (draggedParticleIndex !== null) {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+      canvas.addEventListener("mousemove", function (event) {
+        if (draggedParticleIndex !== null) {
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = canvas.width / rect.width;
+          const scaleY = canvas.height / rect.height;
 
-    const x = (event.clientX - rect.left) * scaleX;
-    const y = (event.clientY - rect.top) * scaleY;
+          const x = (event.clientX - rect.left) * scaleX;
+          const y = (event.clientY - rect.top) * scaleY;
 
-    particles[draggedParticleIndex].x = x;
-    particles[draggedParticleIndex].y = y;
-    drawMechanism(); // Redraw the mechanism with updated particle position
-  }
-});
+          particles[draggedParticleIndex].x = x;
+          particles[draggedParticleIndex].y = y;
+          drawMechanism(); // Redraw the mechanism with updated particle position
+        }
+      });
 
-canvas.addEventListener('mouseup', function(event) {
-  if (draggedParticleIndex !== null) {
-    updateUI(); // Update the entire UI to reflect the new position of the dragged particle
-    draggedParticleIndex = null;
-    canvas.style.cursor = 'default';
-  }
-});
+      canvas.addEventListener("mouseup", function (event) {
+        if (draggedParticleIndex !== null) {
+          updateUI(); // Update the entire UI to reflect the new position of the dragged particle
+          draggedParticleIndex = null;
+          canvas.style.cursor = "default";
+        }
+      });
 
-canvas.addEventListener('mouseleave', function(event) {
-  // If the user drags the mouse outside the canvas, release the dragged particle
-  if (draggedParticleIndex !== null) {
-    updateUI();
-    draggedParticleIndex = null;
-    canvas.style.cursor = 'default';
-  }
-});
+      canvas.addEventListener("mouseleave", function (event) {
+        // If the user drags the mouse outside the canvas, release the dragged particle
+        if (draggedParticleIndex !== null) {
+          updateUI();
+          draggedParticleIndex = null;
+          canvas.style.cursor = "default";
+        }
+      });
+      function saveMechanism() {
+        // Prepare the data to be saved
+        const data = {
+          particles: particles,
+          constraints: constraints,
+        };
 
+        // Save the data as a JSON string in localStorage
+        localStorage.setItem("mechanismData", JSON.stringify(data));
+      }
 
+      function loadMechanism() {
+        // Retrieve the data from localStorage
+        const savedData = localStorage.getItem("mechanismData");
 
+        // If there is data to load
+        if (savedData) {
+          const data = JSON.parse(savedData);
+          // Load the data into the current state
+          particles.length = 0; // Clear existing particles
+          Array.prototype.push.apply(particles, data.particles); // Add saved particles
 
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-</script>
-</body>
+          // Clear existing constraints and add saved constraints
+          constraints.rod.length = 0;
+          Array.prototype.push.apply(constraints.rod, data.constraints.rod);
+          constraints.slider.length = 0;
+          Array.prototype.push.apply(
+            constraints.slider,
+            data.constraints.slider,
+          );
+
+          // Update the UI to reflect the loaded data
+          updateUI();
+        } else {
+          alert("No saved mechanism to load!");
+        }
+      }
+
+      // Make sure the updateUI function is available and properly updates the controls based on the new data
+      // Also, ensure that createParticle, createConstraint, deleteParticle, etc. functions are properly implemented
+
+      window.addEventListener("resize", resizeCanvas);
+      window.onload = () => {
+        loadMechanism();
+        resizeCanvas();
+      };
+    </script>
+  </body>
 </html>
-

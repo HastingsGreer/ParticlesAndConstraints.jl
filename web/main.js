@@ -1,8 +1,6 @@
-console.log("hiip")
-
 // Import the math.js library
 
-import * as math from 'mathjs';
+import * as math from "mathjs";
 
 function normalize(v) {
   return math.divide(v, math.sqrt(math.sum(math.dotMultiply(v, v))));
@@ -54,22 +52,8 @@ function System(n_particles, constraints, masses, positions, velocities) {
   this.constraints = constraints;
   this.masses = masses;
   this.positions = positions;
-  this.velocities = velocities;
 }
 
-// ... The rest of the function definitions go here ...
-
-// The simulation logic that initializes a system and performs computations will also be here
-
-// Usage Example
-let system = new System(
-  6,
-  [new Slider(4, [1, 1]), /* ... other constraints ... */],
-  [40, 700, 100, 100, 40, 10],
-  [/* ... initial positions ... */],
-  [/* ... initial velocities ... */]
-);
-
-// Initialize simulation and perform calculations
-
-
+export function simulate(particles, constraints, ctx) {
+  console.log("hi");
+}
