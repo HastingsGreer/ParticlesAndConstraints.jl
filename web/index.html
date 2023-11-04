@@ -90,8 +90,6 @@
       function drawMechanism() {
         saveMechanism();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Simulate the trajectory and get the results
         if (
           particles.length > 1 &&
           constraints.rod.length + constraints.slider.length > 1
@@ -173,6 +171,7 @@
 
         // Reset line width to default if needed elsewhere
         ctx.lineWidth = 1;
+        // Simulate the trajectory and get the results
       }
 
       function createParticle() {
@@ -203,7 +202,15 @@
             );
             return;
           }
-          constraint = { p1: 0, p2: 1, hovered: false }; // Default to the first two particles
+          var indices = [];
+          for (let i = 0; i < particles.length; i++) {
+            for (let j = 0; j < particles.length; j++) {
+              if (!constraintExists(i, j)) {
+                indices.push([i, j]);
+              }
+            }
+          }
+          constraint = { p1: indices[0][0], p2: indices[0][1], hovered: false }; // Default to the first two particles
           constraints.rod.push(constraint);
         } else if (type === "slider") {
           if (particles.length < 1) {
@@ -282,7 +289,7 @@
     <label>Mass: <input type="range" min="1" max="500" value="${particles[index].mass}" oninput="updateParticle(${index}, 'mass', this.value)"></label>
     <label>X: <input type="range" min="0" max="${canvas.width}" value="${particles[index].x}" oninput="updateParticle(${index}, 'x', this.value)"></label>
     <label>Y: <input type="range" min="0" max="${canvas.height}" value="${particles[index].y}" oninput="updateParticle(${index}, 'y', this.value)"></label>
-    <!--<button onclick="deleteParticle(${index})">X</button>
+    <button onclick="deleteParticle(${index})">X</button>
   `;
         box.addEventListener("mouseenter", () => {
           particles[index].hovered = true;
@@ -293,6 +300,21 @@
           drawMechanism();
         });
         document.getElementById("particlesControl").appendChild(box);
+      }
+      function constraintExists(p1, p2) {
+        if (p1 == p2) {
+          return true;
+        }
+        for (rod of constraints.rod) {
+          if (
+            (rod.p1 == p1 && rod.p2 == p2) ||
+            (rod.p1 == p2 && rod.p2 == p1) ||
+            p1 == p2
+          ) {
+            return true;
+          }
+        }
+        return false;
       }
 
       function createConstraintControlBox(type, index) {
@@ -305,26 +327,38 @@
           box.innerHTML = `
       <label>
         <select name="p1" onchange="updateConstraint(this, 'rod', ${index}, 'p1')">
-          ${particles
-            .map(
-              (_, i) =>
-                `<option value="${i}" ${
-                  i === constraints.rod[index].p1 ? "selected" : ""
-                }>Particle ${i + 1}</option>`,
-            )
-            .join("")}
+	   ${particles
+       .map((_, i) => i)
+       .filter(
+         (i) =>
+           !constraintExists(constraints.rod[index].p2, i) ||
+           i == constraints.rod[index].p1,
+       )
+       .map(
+         (i) =>
+           `<option value="${i}" ${
+             i === constraints.rod[index].p1 ? "selected" : ""
+           }>Particle ${i + 1}</option>`,
+       )
+       .join("")}
         </select>
       </label>
       <label>
         <select name="p2" onchange="updateConstraint(this, 'rod', ${index}, 'p2')">
-          ${particles
-            .map(
-              (_, i) =>
-                `<option value="${i}" ${
-                  i === constraints.rod[index].p2 ? "selected" : ""
-                }>Particle ${i + 1}</option>`,
-            )
-            .join("")}
+	   ${particles
+       .map((_, i) => i)
+       .filter(
+         (i) =>
+           !constraintExists(constraints.rod[index].p1, i) ||
+           i == constraints.rod[index].p2,
+       )
+       .map(
+         (i) =>
+           `<option value="${i}" ${
+             i === constraints.rod[index].p2 ? "selected" : ""
+           }>Particle ${i + 1}</option>`,
+       )
+       .join("")}
         </select>
       </label>
       <button onclick="deleteConstraint('rod', ${index})">Delete</button>
