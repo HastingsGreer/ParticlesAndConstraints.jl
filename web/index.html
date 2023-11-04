@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="./public/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mechanism Designer</title>
     <style>
@@ -78,18 +79,46 @@
     </div>
     <script type="module">
       import { simulate } from "./main.js";
-      console.log(simulate);
       window.simulate = simulate;
     </script>
     <script>
       const canvas = document.getElementById("mechanism");
       const ctx = canvas.getContext("2d");
-      const particles = [];
+      const particles = [{ x: 100, y: 100, mass: 1, hovered: false }];
       const constraints = { rod: [], slider: [] };
 
       function drawMechanism() {
         saveMechanism();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Simulate the trajectory and get the results
+        if (
+          particles.length > 1 &&
+          constraints.rod.length + constraints.slider.length > 1
+        ) {
+          try {
+            const trajectories = simulate(particles, constraints);
+
+            // Draw the trajectories for the rod constraints
+            trajectories.forEach((trajectory) => {
+              trajectory = trajectory._data;
+              for (let i = 0; i < constraints.rod.length; i++) {
+                const rod = constraints.rod[i];
+                const p1Index = rod.p1 * 2; // Index in trajectory array for p1.x and p1.y
+                const p2Index = rod.p2 * 2; // Index in trajectory array for p2.x and p2.y
+
+                // Draw the line for the rod's trajectory
+                ctx.beginPath();
+                ctx.moveTo(trajectory[p1Index], trajectory[p1Index + 1]);
+                ctx.lineTo(trajectory[p2Index], trajectory[p2Index + 1]);
+                ctx.strokeStyle = "rgba(255, 0, 0, 0.2)"; // Light red color
+                ctx.stroke();
+              }
+            });
+
+            ctx.strokeStyle = "black";
+          } catch {}
+        }
 
         // Draw particles
         particles.forEach((p, index) => {
@@ -144,7 +173,6 @@
 
         // Reset line width to default if needed elsewhere
         ctx.lineWidth = 1;
-        window.simulate(particles, constraints, ctx);
       }
 
       function createParticle() {
@@ -251,7 +279,7 @@
         const box = document.createElement("div");
         box.className = "control-box";
         box.innerHTML = `
-    <label>Mass: <input type="range" min="1" max="10" value="${particles[index].mass}" oninput="updateParticle(${index}, 'mass', this.value)"></label>
+    <label>Mass: <input type="range" min="1" max="500" value="${particles[index].mass}" oninput="updateParticle(${index}, 'mass', this.value)"></label>
     <label>X: <input type="range" min="0" max="${canvas.width}" value="${particles[index].x}" oninput="updateParticle(${index}, 'x', this.value)"></label>
     <label>Y: <input type="range" min="0" max="${canvas.height}" value="${particles[index].y}" oninput="updateParticle(${index}, 'y', this.value)"></label>
     <!--<button onclick="deleteParticle(${index})">X</button>
